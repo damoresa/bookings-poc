@@ -46,6 +46,7 @@ const hotels = [
     }
 ];
 
+// TODO: Add more rooms and allocate them to hotels randomly
 const rooms = [
     {
         name: 'Minor suite',
@@ -90,60 +91,65 @@ const filters = [
 ];
 
 // Create the hotels
-// const creationPromises = [];
-// hotels.forEach((hotel) => {
-//     creationPromises.push(hotelScripts.creation(contract, caller, hotel));
-// });
-// Promise.all(creationPromises).then((receipt) => {
-//     console.log('Created hotels');
-//     hotelScripts.search(contract, caller)
-//         .then((hotels) => {
-//             const roomCreationPromises = [];
-//             hotels.forEach((hotel) => {
-//                 roomCreationPromises.push(roomScripts.creation(contract, caller, hotel['0'], rooms[0]));
-//             });
-//             Promise.all(roomCreationPromises).then((receipt) => {
-//                 console.log('Created rooms');
-//                 hotels.forEach((hotel) => {
-//                     roomScripts.search(contract, caller, hotel['0'])
-//                         .then((rooms) => {
-//                             console.log(`Rooms for hotel ${hotel['0']}: ${JSON.stringify(rooms)}`);
-//                             const roomId = rooms[0]['0'];
-//                             const bookingCreationPromises = [];
-//                             bookings.map((booking) => {
-//                                 return {
-//                                     start: moment(booking.start, DATE_FORMAT).unix(),
-//                                     end: moment(booking.end, DATE_FORMAT).unix()
-//                                 };
-//                             }).forEach((booking) => {
-//                                 console.log(`Booking room ${roomId} on period ${booking.start} to ${booking.end}`);
-//                                 bookingCreationPromises.push(bookingScripts.creation(contract, caller, roomId, booking));
-//                             });
-//                             Promise.all(bookingCreationPromises).then((receipt) => {
-//                                 console.log(`Created bookings for room ${roomId}`);
-//                                 bookingScripts.search(contract, caller, roomId).then(console.log).catch(console.error);
-//                             }).catch(console.error);
-//
-//                         })
-//                         .catch(console.error);
-//                 })
-//             });
-//         })
-//         .catch(console.error);
-// }).catch(console.error);
+const initializeData = () => {
+    return new Promise((resolve, reject) => {
+        const creationPromises = [];
+        hotels.forEach((hotel) => {
+            creationPromises.push(hotelScripts.creation(contract, caller, hotel));
+        });
+        Promise.all(creationPromises).then((receipt) => {
+            console.log('Created hotels');
+            hotelScripts.search(contract, caller)
+                .then((hotels) => {
+                    const roomCreationPromises = [];
+                    hotels.forEach((hotel) => {
+                        roomCreationPromises.push(roomScripts.creation(contract, caller, hotel['0'], rooms[0]));
+                    });
+                    Promise.all(roomCreationPromises).then((receipt) => {
+                        console.log('Created rooms');
+                        hotels.forEach((hotel) => {
+                            roomScripts.search(contract, caller, hotel['0'])
+                                .then((rooms) => {
+                                    console.log(`Rooms for hotel ${hotel['0']}: ${JSON.stringify(rooms)}`);
+                                    const roomId = rooms[0]['0'];
+                                    const bookingCreationPromises = [];
+                                    bookings.map((booking) => {
+                                        return {
+                                            start: moment(booking.start, DATE_FORMAT).unix(),
+                                            end: moment(booking.end, DATE_FORMAT).unix()
+                                        };
+                                    }).forEach((booking) => {
+                                        console.log(`Booking room ${roomId} on period ${booking.start} to ${booking.end}`);
+                                        bookingCreationPromises.push(bookingScripts.creation(contract, caller, roomId, booking));
+                                    });
+                                    Promise.all(bookingCreationPromises).then((receipt) => {
+                                        console.log(`Created bookings for room ${roomId}`);
+                                        // bookingScripts.search(contract, caller, roomId).then(console.log).catch(reject);
+                                        resolve();
+                                    }).catch(reject);
 
-// Search booking
-// bookingScripts.search(contract, caller, 1).then(console.log).catch(console.error);
+                                })
+                                .catch(reject);
+                        })
+                    });
+                })
+                .catch(reject);
+        }).catch(reject);
+    });
+};
 
-// Validate booking
-filters.map((filter) => {
-    return {
-        start: moment(filter.start, DATE_FORMAT).unix(),
-        end: moment(filter.end, DATE_FORMAT).unix()
-    };
-}).forEach((filter) => {
-    roomScripts.searchAvailableRooms(contract, caller, filter.start, filter.end)
-        .then((roomsResult) => {
-            console.log(`Range ${moment.unix(filter.start).format(DATE_FORMAT)} to ${moment.unix(filter.end).format(DATE_FORMAT)}: ${JSON.stringify(roomsResult)}`);
-        }).catch(console.error);
-});
+const validateBookings = () => {
+    filters.map((filter) => {
+        return {
+            start: moment(filter.start, DATE_FORMAT).unix(),
+            end: moment(filter.end, DATE_FORMAT).unix()
+        };
+    }).forEach((filter) => {
+        roomScripts.searchAvailableRooms(contract, caller, filter.start, filter.end)
+            .then((roomsResult) => {
+                console.log(`Range ${moment.unix(filter.start).format(DATE_FORMAT)} to ${moment.unix(filter.end).format(DATE_FORMAT)}: ${JSON.stringify(roomsResult)}`);
+            }).catch(console.error);
+    });
+};
+
+initializeData().then(validateBookings).catch(console.error);
