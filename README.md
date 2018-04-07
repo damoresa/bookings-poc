@@ -13,9 +13,10 @@ are not handled on the basic version.
 
 On the future, it may support:
 
-[ ] Multi-user booking support (using _addresses_)
-[ ] Hotel management
-[ ] Room management
+- [ ] Multi-user booking support (using _addresses_)
+- [ ] Hotel management
+- [ ] Room management
+- [ ] _Smart Contract_ unit testing
 
 #### Technologies
 
