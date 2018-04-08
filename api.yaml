@@ -1,0 +1,256 @@
+swagger: '2.0'
+info:
+  title: Hotel booking API
+  description: Hotel booking demo REST API
+  version: "1.0.0"
+host: localhost:9000
+schemes:
+  - http
+produces:
+  - application/json
+basePath: /api
+paths:
+  /hotels:
+    get:
+      operationId: getHotels
+      description: Endpoint that returns the hotels on the DLT
+      tags:
+        - Search
+      responses:
+        '200':
+          description: Response with the found hotels
+          schema:
+            $ref: '#/definitions/GetHotelsReponse'
+        '400':
+          description: Response when no hotels were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /rooms:
+    get:
+      operationId: getRooms
+      description: Endpoint that returns the rooms on the DLT for the input search criteria
+      tags:
+        - Search
+      parameters:
+        - $ref: '#/parameters/BookingStartDate'
+        - $ref: '#/parameters/BookingEndDate'
+      responses:
+        '200':
+          description: Response with the found rooms
+          schema:
+            $ref: '#/definitions/GetRoomsResponse'
+        '400':
+          description: Response when no rooms were found with the given search criteria
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /rooms/{roomId}:
+    get:
+      operationId: getRoomById
+      description: Endpoint that returns the room on the DLT for the given unique room code
+      tags:
+        - Search
+      parameters:
+        - $ref: '#/parameters/RoomId'
+      responses:
+        '200':
+          description: Response with the room found for the given unique code
+          schema:
+            $ref: '#/definitions/Room'
+        '400':
+          description: Response when no rooms were found with the given search criteria
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /bookings:
+    get:
+      operationId: getBookings
+      description: Endpoint that returns all the bookings on the DLT
+      tags:
+        - Search
+      responses:
+        '200':
+          description: Response with the found bookings
+          schema:
+            $ref: '#/definitions/GetBookingsResponse'
+        '400':
+          description: Response when no bookings were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: performBooking
+      description: Endpoint that performs a booking operation on the DLT
+      parameters: 
+        - $ref: '#/parameters/PerformBooking'
+      tags:
+        - Booking
+      responses:
+        '200':
+          description: Response received when the booking has been successfully performed
+          schema:
+            $ref: '#/definitions/Success'
+        '400':
+          description: Response received if the booking couldn't be done
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /bookings/{roomId}:
+    get:
+      operationId: getBookingsByRoom
+      description: Endpoint that returns all the bookings on the DLT for the given room id
+      parameters:
+        - $ref: '#/parameters/RoomId'
+      tags:
+        - Search
+      responses:
+        '200':
+          description: Response with the found bookings for the given room
+          schema:
+            $ref: '#/definitions/GetBookingsResponse'
+        '400':
+          description: Response when no bookings were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+parameters:
+  BookingStartDate:
+    name: bookingStart
+    in: query
+    type: string
+    description: |
+      DD/MM/YYYY formatted date on which the booking will start
+      **IMPORTANT**: This will filter all rooms that are already booked on the selected date range
+      (bookingStart to bookingEnd)
+  BookingEndDate:
+    name: bookingEnd
+    in: query
+    type: string
+    description: |
+      DD/MM/YYYY formatted date on which the booking will end
+      **IMPORTANT**: This will filter all rooms that are already booked on the selected date range
+      (bookingStart to bookingEnd)
+  PerformBooking:
+    name: booking
+    in: body
+    schema:
+      type: object
+      properties:
+        roomId:
+          type: string
+          description: Unique identifier of the room being booked
+        start:
+          type: string
+          description: DD/MM/YYYY HH:MM date when the booking begins
+        end:
+          type: string
+          description: DD/MM/YYYY HH:MM date when the booking ends
+    description: Booking data body
+    required: true
+  RoomId:
+    name: roomId
+    in: path
+    type: string
+    description: Room unique identifier
+    required: true
+definitions:
+  Hotel:
+    type: object
+    properties:
+      code:
+        type: string
+        description: Hotel unique identifier
+      name:
+        type: string
+        description: Hotel name
+      description:
+        type: string
+        description: Hotel description
+      visitants:
+        type: number
+        description: Average amount of visitants
+  Room:
+    type: object
+    properties:
+      code:
+        type: string
+        description: Room unique identifier
+      description:
+        type: string
+        description: Room description
+      beds:
+        type: number
+        description: Amount of beds on the room
+      bathrooms:
+        type: number
+        description: Amount of bathrooms on the room
+  Booking:
+    type: object
+    properties:
+      code:
+        type: string
+        description: Booking unique identifier
+      date:
+        type: string
+        description: DD/MM/YYYY HH:MM when the booking was done
+      startDate:
+        type: string
+        description: DD/MM/YYYY HH:MM when the booking begins
+      endDate:
+        type: string
+        description: DD/MM/YYYY HH:MM when the booking ends
+  GetHotelsReponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/Hotel'
+        description: Retrieved hotels list.
+  GetRoomsResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/Room'
+        description: Retrieved rooms list.
+  GetBookingsResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/Booking'
+        description: Retrieved bookings list.
+  Success:
+    type: object
+    properties:
+      message:
+        type: string
+  Error:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
