@@ -83,7 +83,6 @@ contract Hotels {
         return available;
     }
 
-    // TODO: This modifier is working but the API returns a 200 OK when the booking was rejected
     modifier canBeBooked(uint roomId, uint startDate, uint endDate) {
         // Modifier function that masks _isRoomAvailable so we can easily attach it to function
         // headers as a modifier instead of performing validations on the function body
