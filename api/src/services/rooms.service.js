@@ -23,6 +23,15 @@ class RoomsService {
         });
     }
 
+    getRoomDetails(roomId) {
+        logger.debug(`Finding defailts for room ${roomId}`);
+        return new Promise((resolve, reject) => {
+            smartContract.contract.methods.roomDetail(roomId).call({ from: smartContract.caller })
+                .then(resolve)
+                .catch((error) => utils.handleErrors(error, reject));
+        });
+    }
+
     getAvailableRooms(start, end) {
         logger.debug(`Finding available rooms for range ${start} to ${end}`);
         return new Promise((resolve, reject) => {

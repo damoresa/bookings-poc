@@ -20,7 +20,7 @@ web3.eth.getCoinbase()
                 data: code
             }).send({
                 from: user,
-                gas: 50000000,
+                gas: 1000000000,
                 gasPrice: 1,
             }).then((contract) => {
                 console.log(`Contract deployed ${contract.options.address}`);

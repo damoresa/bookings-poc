@@ -4,15 +4,7 @@ const moment = require('moment');
 const CONSTANTS = require('./../constants/constants');
 const bookingService = require('./../services/bookings.service');
 const logger = require('./../services/logger.service');
-
-const parseBooking = (booking) => {
-    return {
-        code: booking['0'],
-        date: moment.unix(Number(booking['1'])).format(CONSTANTS.DATE_FORMAT),
-        startDate: moment.unix(Number(booking['2'])).format(CONSTANTS.DATE_FORMAT),
-        endDate: moment.unix(Number(booking['3'])).format(CONSTANTS.DATE_FORMAT),
-    };
-};
+const transformers = require('./../utils/transformers');
 
 class BookingsController {
 
@@ -48,12 +40,18 @@ class BookingsController {
 
             logger.debug(`Creating booking for room ${roomId} from ${start} to ${end}`);
             bookingService.bookRoom(roomId, startDate, endDate)
-                .then(() => {
-                    response.json({message: 'Room has been booked successfully'});
+                .then((receipt) => {
+                    if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
+                        response.json({message: 'Room has been booked successfully'});
+                    } else {
+                        const time = moment().unix();
+                        logger.error(`${time} | Error booking room ${roomId} from ${start} to ${end}.`);
+                        response.status(400).json({code: `${time}`, message: 'Room couldn\'t be booked'});
+                    }
                 })
                 .catch((error) => {
                     const time = moment().unix();
-                    logger.error(`${time} | Error booking room: ${error}`);
+                    logger.error(`${time} | Error booking room ${roomId} from ${start} to ${end}: ${error}`);
                     response.status(500).json({code: `${time}`, message: error});
                 });
         }
@@ -65,7 +63,7 @@ class BookingsController {
         logger.debug(`Finding bookings`);
         bookingService.getBookings()
             .then((bookings) => {
-                response.json(bookings.map(parseBooking));
+                response.json(bookings.map(transformers.parseBooking));
             })
             .catch((error) => {
                 const time = moment().unix();
@@ -87,7 +85,7 @@ class BookingsController {
             logger.debug(`Finding bookings for room ${roomId}`);
             bookingService.getBookingsForRoom(roomId)
                 .then((bookings) => {
-                    response.json(bookings.map(parseBooking));
+                    response.json(bookings.map(transformers.parseBooking));
                 })
                 .catch((error) => {
                     const time = moment().unix();

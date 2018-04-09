@@ -69,7 +69,7 @@ contract Hotels {
         uint idx = 0;
 
         // Iterate the bookings and validate those which belong to the given room
-        while(available && idx < bookings.length) {
+        while (available && idx < bookings.length) {
             Booking memory booking = bookings[idx];
 
             // Booking belongs to the given room AND the range is invalid
@@ -83,7 +83,15 @@ contract Hotels {
         return available;
     }
 
-    function createBooking(uint roomCode, uint startDate, uint endDate) external returns (uint) {
+    // TODO: This modifier is working but the API returns a 200 OK when the booking was rejected
+    modifier canBeBooked(uint roomId, uint startDate, uint endDate) {
+        // Modifier function that masks _isRoomAvailable so we can easily attach it to function
+        // headers as a modifier instead of performing validations on the function body
+        require(_isRoomAvailable(roomId, startDate, endDate));
+        _;
+    }
+
+    function createBooking(uint roomCode, uint startDate, uint endDate) external canBeBooked(roomCode, startDate, endDate) returns (uint) {
         uint bookingCode = ++BOOKING_ID;
         Booking memory booking = Booking(bookingCode, now, startDate, endDate);
         bookings.push(booking);
@@ -94,6 +102,7 @@ contract Hotels {
         return bookingCode;
     }
 
+    // TODO: Adding the booked room code would be handy in order to be able to display a link on the frontend
     function bookingDetail(uint bookingId) external view returns (uint, uint, uint, uint) {
         uint pointer = 0;
         bool found = false;
