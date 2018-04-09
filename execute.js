@@ -21,6 +21,7 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8501'));
 // Bookings V8: 0x9e9be6E71Cff2b52b57B0d56788e3c616a3aea56
 // Bookings V9: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
 // Bookings V10: 0x495bc51be37bB2AEca7219Ca4Eed5FAF240752d9
+// Bookings V11:
 
 const jsonInterface = JSON.parse(interface);
 const contract = new web3.eth.Contract(jsonInterface, '0x495bc51be37bB2AEca7219Ca4Eed5FAF240752d9');

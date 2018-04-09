@@ -111,6 +111,14 @@ contract Hotels {
         return (booking.code, booking.bookingDate, booking.startDate, booking.endDate);
     }
 
+    function getBookings() external view returns (uint[]) {
+        uint[] memory result = new uint[](bookings.length);
+        for (uint idx = 0; idx < bookings.length; idx++) {
+            result[idx] = bookings[idx].code;
+        }
+        return result;
+    }
+
     function roomBookings(uint roomId) external view returns (uint[]) {
         uint[] memory result = new uint[](roomBookingsCount[roomId]);
         // Iterate the existing rooms and allocate those belonging to this hotel
@@ -211,8 +219,7 @@ contract Hotels {
     function allHotels() external view returns (uint[]) {
         uint[] memory result = new uint[](hotels.length);
         for (uint index = 0; index < hotels.length; index++) {
-            Hotel memory hotel = hotels[index];
-            result[index] = hotel.code;
+            result[index] = hotels[index].code;
         }
         return result;
     }
