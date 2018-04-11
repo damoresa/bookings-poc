@@ -141,9 +141,9 @@ const initializeData = () => {
             hotelScripts.search(contract, caller)
                 .then((hotels) => {
                     const roomCreationPromises = [];
-                    const roomIdx = generateRandomNumber(0, rooms.length);
-                    console.log(`Selected room ${roomIdx}`);
                     hotels.forEach((hotel) => {
+                        const roomIdx = generateRandomNumber(0, rooms.length);
+                        console.log(`Selected room ${roomIdx}`);
                         roomCreationPromises.push(roomScripts.creation(contract, caller, hotel['0'], rooms[roomIdx]));
                     });
                     Promise.all(roomCreationPromises).then((receipt) => {
