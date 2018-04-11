@@ -11,10 +11,10 @@ class BookingsService {
         this._getBookingsDetails.bind(this);
     }
 
-    bookRoom(roomId, start, end) {
-        logger.debug(`Booking room ${roomId} from ${start} to ${end}`);
+    bookRoom(roomId, start, end, visitors) {
+        logger.debug(`Booking room ${roomId} for ${visitors} visitors from ${start} to ${end}`);
         return new Promise((resolve, reject) => {
-            smartContract.contract.methods.createBooking(roomId, start, end).send({
+            smartContract.contract.methods.createBooking(roomId, start, end, visitors).send({
                 from: smartContract.caller,
                 gas: smartContract.gasLimit
             })

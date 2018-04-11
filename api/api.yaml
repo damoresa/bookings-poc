@@ -2,8 +2,8 @@ swagger: '2.0'
 info:
   title: Hotel booking API
   description: Hotel booking demo REST API
-  version: "1.0.0"
-host: localhost:9000
+  version: "1.0.1"
+host: ec2-18-196-241-71.eu-central-1.compute.amazonaws.com
 schemes:
   - http
 produces:
@@ -29,15 +29,39 @@ paths:
           description: Response when an unexpected error happens on the API
           schema:
             $ref: '#/definitions/Error'
+  /hotels/{hotelId}/rooms:
+    get:
+      operationId: getHotelRooms
+      description: Endpoint that returns the rooms for the given hotel on the DLT
+      tags:
+        - Search
+      parameters:
+        - $ref: '#/parameters/HotelId'
+      responses:
+        '200':
+          description: Response with the found rooms for the given hotel
+          schema:
+            $ref: '#/definitions/GetRoomsResponse'
+        '400':
+          description: Response when no rooms were found for the given hotel
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
   /rooms:
     get:
-      operationId: getRooms
+      operationId: searchRooms
       description: Endpoint that returns the rooms on the DLT for the input search criteria
       tags:
         - Search
       parameters:
         - $ref: '#/parameters/BookingStartDate'
         - $ref: '#/parameters/BookingEndDate'
+        - $ref: '#/parameters/BookingLocation'
+        - $ref: '#/parameters/BookingVisitors'
+        - $ref: '#/parameters/BookingChildren'
       responses:
         '200':
           description: Response with the found rooms
@@ -141,6 +165,7 @@ parameters:
       DD/MM/YYYY formatted date on which the booking will start
       **IMPORTANT**: This will filter all rooms that are already booked on the selected date range
       (bookingStart to bookingEnd)
+    required: true
   BookingEndDate:
     name: bookingEnd
     in: query
@@ -149,6 +174,31 @@ parameters:
       DD/MM/YYYY formatted date on which the booking will end
       **IMPORTANT**: This will filter all rooms that are already booked on the selected date range
       (bookingStart to bookingEnd)
+    required: true
+  BookingLocation:
+    name: location
+    in: query
+    type: string
+    description: Desired location for the booking request
+    required: true
+  BookingVisitors:
+    name: visitors
+    in: query
+    type: number
+    description: Amount of visitors on the booking request
+    required: true
+  BookingChildren:
+    name: children
+    in: query
+    type: number
+    description: Amount of children on the booking request
+    required: true
+  HotelId:
+    name: hotelId
+    in: path
+    type: string
+    description: Hotel unique identifier
+    required: true
   PerformBooking:
     name: booking
     in: body
@@ -164,6 +214,12 @@ parameters:
         end:
           type: string
           description: DD/MM/YYYY HH:MM date when the booking ends
+        visitors:
+          type: number
+          description: Amount of visitors on the booking
+        children:
+          type: number
+          description: Amount of children on the booking
     description: Booking data body
     required: true
   RoomId:
@@ -185,9 +241,9 @@ definitions:
       description:
         type: string
         description: Hotel description
-      visitants:
-        type: number
-        description: Average amount of visitants
+      location:
+        type: string
+        description: Hotel location
   Room:
     type: object
     properties:
@@ -203,6 +259,12 @@ definitions:
       bathrooms:
         type: number
         description: Amount of bathrooms on the room
+      visitors:
+        type: number
+        description: Allowed amount of visitors at the room
+      hotelId:
+        type: number
+        description: Unique identifier of the hotel the room belongs to
   Booking:
     type: object
     properties:
@@ -218,6 +280,12 @@ definitions:
       endDate:
         type: string
         description: DD/MM/YYYY HH:MM when the booking ends
+      visitors:
+        type: number
+        description: Amount of visitors on the booking
+      roomId:
+        type: number
+        description: Unique identifier of the room the booking is associated with
   GetHotelsReponse:
     type: object
     properties:

@@ -19,7 +19,7 @@ class HotelsController {
     init() {
         this._router = express.Router();
         this._router.get('/', this.getHotels.bind(this));
-        this._router.get('/:hotelId/rooms', this.getRooms.bind(this));
+        this._router.get('/:hotelId/rooms', this.getHotelRooms.bind(this));
     }
 
     getHotels(request, response) {
@@ -37,7 +37,7 @@ class HotelsController {
 
     }
 
-    getRooms(request, response) {
+    getHotelRooms(request, response) {
 
         const hotelId = request.params.hotelId;
 
@@ -47,7 +47,7 @@ class HotelsController {
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug('Finding rooms');
-            roomService.getRooms(hotelId)
+            roomService.getRoomsForHotel(hotelId)
                 .then((rooms) => {
                     response.json(rooms.map(transformers.parseRoom));
                 })

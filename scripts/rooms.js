@@ -1,6 +1,6 @@
 const creation = (contract, caller, hotelId, room) => {
     return new Promise((resolve, reject) => {
-        contract.methods.createRoom(hotelId, room.name, room.description, room.beds, room.bathrooms).send({
+        contract.methods.createRoom(hotelId, room.name, room.description, room.beds, room.bathrooms, room.visitors).send({
             from: caller,
             gas: 1000000
         })
@@ -24,9 +24,9 @@ const search = (contract, caller, hotelId) => {
     });
 };
 
-const searchAvailableRooms = (contract, caller, start, end) => {
+const searchAvailableRooms = (contract, caller, filter) => {
     return new Promise((resolve, reject) => {
-        contract.methods.availableRooms(start, end).call({ from: caller })
+        contract.methods.availableRooms(filter.location, filter.start, filter.end, filter.visitors).call({ from: caller })
             .then((roomIds) => {
                 const promises = [];
                 roomIds.forEach((roomId) => {

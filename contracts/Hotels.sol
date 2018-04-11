@@ -8,6 +8,7 @@ contract Hotels {
         uint bookingDate;
         uint startDate;
         uint endDate;
+        uint visitors;
     }
 
     uint internal HOTEL_ID = 0;
@@ -16,7 +17,6 @@ contract Hotels {
         string name;
         string description;
         string location;
-        uint visitors;
     }
 
     uint internal ROOM_ID = 0;
@@ -26,6 +26,7 @@ contract Hotels {
         string description;
         uint beds;
         uint bathrooms;
+        uint visitors;
     }
 
     // TODO: Add events - hotel, room, booking creation
@@ -47,11 +48,12 @@ contract Hotels {
         return rand;
     }
 
-    function _countAvailableRooms(uint startDate, uint endDate) private view returns (uint) {
+    function _countAvailableRooms(string location, uint startDate, uint endDate, uint visitors) private view returns (uint) {
         uint counter = 0;
         for (uint idx = 0; idx < rooms.length; idx++) {
             Room memory room = rooms[idx];
-            if (_isRoomAvailable(room.code, startDate, endDate)) {
+            Hotel memory hotel = _getHotel(roomToHotel[room.code]);
+            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(room.code, startDate, endDate, visitors)) {
                 counter++;
             }
         }
@@ -64,35 +66,55 @@ contract Hotels {
         return !(startDate >= booking.endDate || endDate <= booking.startDate);
     }
 
-    function _isRoomAvailable(uint roomId, uint startDate, uint endDate) private view returns (bool) {
+    function _canRoomFitVisitors(uint roomId, uint visitors) private view returns (bool) {
+        bool found = false;
+        uint counter = 0;
+        Room memory room;
+        while(!found) {
+            room = rooms[counter];
+            if (room.code == roomId) {
+                found = true;
+            } else {
+                counter++;
+            }
+        }
+        return room.visitors >= visitors;
+    }
+
+    function _isRoomAvailable(uint roomId, uint startDate, uint endDate, uint visitors) private view returns (bool) {
         bool available = true;
         uint idx = 0;
 
-        // Iterate the bookings and validate those which belong to the given room
-        while (available && idx < bookings.length) {
-            Booking memory booking = bookings[idx];
+        // If the room isn't big enough, mark it as not available, check the room bookings otherwise
+        if (!_canRoomFitVisitors(roomId, visitors)) {
+            available = false;
+        } else {
+            // Iterate the bookings and validate those which belong to the given room
+            while (available && idx < bookings.length) {
+                Booking memory booking = bookings[idx];
 
-            // Booking belongs to the given room AND the range is invalid
-            if (bookingToRoom[booking.code] == roomId && _isInvalidRange(booking, startDate, endDate)) {
-                available = false;
+                // Booking belongs to the given room AND the range is invalid
+                if (bookingToRoom[booking.code] == roomId && _isInvalidRange(booking, startDate, endDate)) {
+                    available = false;
+                }
+
+                idx++;
             }
-
-            idx++;
         }
 
         return available;
     }
 
-    modifier canBeBooked(uint roomId, uint startDate, uint endDate) {
+    modifier canBeBooked(uint roomId, uint startDate, uint endDate, uint visitors) {
         // Modifier function that masks _isRoomAvailable so we can easily attach it to function
         // headers as a modifier instead of performing validations on the function body
-        require(_isRoomAvailable(roomId, startDate, endDate));
+        require(_isRoomAvailable(roomId, startDate, endDate, visitors));
         _;
     }
 
-    function createBooking(uint roomCode, uint startDate, uint endDate) external canBeBooked(roomCode, startDate, endDate) returns (uint) {
+    function createBooking(uint roomCode, uint startDate, uint endDate, uint visitors) external canBeBooked(roomCode, startDate, endDate, visitors) returns (uint) {
         uint bookingCode = ++BOOKING_ID;
-        Booking memory booking = Booking(bookingCode, now, startDate, endDate);
+        Booking memory booking = Booking(bookingCode, now, startDate, endDate, visitors);
         bookings.push(booking);
 
         bookingToRoom[bookingCode] = roomCode;
@@ -101,8 +123,7 @@ contract Hotels {
         return bookingCode;
     }
 
-    // TODO: Adding the booked room code would be handy in order to be able to display a link on the frontend
-    function bookingDetail(uint bookingId) external view returns (uint, uint, uint, uint) {
+    function bookingDetail(uint bookingId) external view returns (uint, uint, uint, uint, uint, uint) {
         uint pointer = 0;
         bool found = false;
         Booking memory booking;
@@ -116,7 +137,7 @@ contract Hotels {
             }
         }
 
-        return (booking.code, booking.bookingDate, booking.startDate, booking.endDate);
+        return (booking.code, booking.bookingDate, booking.startDate, booking.endDate, booking.visitors, bookingToRoom[booking.code]);
     }
 
     function getBookings() external view returns (uint[]) {
@@ -141,9 +162,9 @@ contract Hotels {
         return result;
     }
 
-    function createRoom(uint hotelCode, string name, string description, uint beds, uint bathrooms) external returns (uint) {
+    function createRoom(uint hotelCode, string name, string description, uint beds, uint bathrooms, uint visitors) external returns (uint) {
         uint roomCode = ++ROOM_ID;
-        Room memory room = Room(roomCode, name, description, beds, bathrooms);
+        Room memory room = Room(roomCode, name, description, beds, bathrooms, visitors);
         rooms.push(room);
 
         roomToHotel[roomCode] = hotelCode;
@@ -153,7 +174,7 @@ contract Hotels {
         return roomCode;
     }
 
-    function roomDetail(uint roomId) external view returns (uint, string, string, uint, uint) {
+    function roomDetail(uint roomId) external view returns (uint, string, string, uint, uint, uint, uint) {
         uint pointer = 0;
         bool found = false;
         Room memory room;
@@ -167,15 +188,17 @@ contract Hotels {
             }
         }
 
-        return (room.code, room.name, room.description, room.beds, room.bathrooms);
+        return (room.code, room.name, room.description, room.beds, room.bathrooms, room.visitors, roomToHotel[room.code]);
     }
 
-    function availableRooms(uint startDate, uint endDate) external view returns (uint[]) {
-        uint[] memory result = new uint[](_countAvailableRooms(startDate, endDate));
+    function availableRooms(string location, uint startDate, uint endDate, uint visitors) external view returns (uint[]) {
+        uint[] memory result = new uint[](_countAvailableRooms(location, startDate, endDate, visitors));
         uint counter = 0;
         for (uint idx = 0; idx < rooms.length; idx++) {
             Room memory room = rooms[idx];
-            if (_isRoomAvailable(room.code, startDate, endDate)) {
+            Hotel memory hotel = _getHotel(roomToHotel[room.code]);
+            // Selected location and available date
+            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(room.code, startDate, endDate, visitors)) {
                 result[counter] = room.code;
                 counter++;
             }
@@ -197,17 +220,7 @@ contract Hotels {
         return result;
     }
 
-    function createHotel(string name, string description, string location, uint visitors) external returns (uint) {
-        uint hotelCode = ++HOTEL_ID;
-        Hotel memory hotel = Hotel(hotelCode, name, description, location, visitors);
-        hotels.push(hotel);
-
-        hotelRoomsCount[hotelCode] = 0;
-
-        return hotelCode;
-    }
-
-    function hotelDetail(uint hotelId) external view returns (uint, string, string, string, uint) {
+    function _getHotel(uint hotelId) private view returns (Hotel) {
         uint pointer = 0;
         bool found = false;
         Hotel memory hotel;
@@ -221,7 +234,34 @@ contract Hotels {
             }
         }
 
-        return (hotel.code, hotel.name, hotel.description, hotel.location, hotel.visitors);
+        return hotel;
+    }
+
+    function createHotel(string name, string description, string location) external returns (uint) {
+        uint hotelCode = ++HOTEL_ID;
+        Hotel memory hotel = Hotel(hotelCode, name, description, location);
+        hotels.push(hotel);
+
+        hotelRoomsCount[hotelCode] = 0;
+
+        return hotelCode;
+    }
+
+    function hotelDetail(uint hotelId) external view returns (uint, string, string, string) {
+        uint pointer = 0;
+        bool found = false;
+        Hotel memory hotel;
+
+        while (!found) {
+            hotel = hotels[pointer];
+            if (hotel.code == hotelId) {
+                found = true;
+            } else {
+                pointer++;
+            }
+        }
+
+        return (hotel.code, hotel.name, hotel.description, hotel.location);
     }
 
     function allHotels() external view returns (uint[]) {

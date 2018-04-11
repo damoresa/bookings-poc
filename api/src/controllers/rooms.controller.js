@@ -26,17 +26,21 @@ class RoomsController {
 
         const start = request.query.bookingStart;
         const end = request.query.bookingEnd;
+        const location = request.query.location;
+        const visitors = Number(request.query.visitors);
+        const children = Number(request.query.children) || 0;
 
-        if (!start || !end) {
+        if (!start || !end || !location || !visitors || !children) {
             const time = moment().unix();
-            logger.error(`${time} | Missing parameters to find available rooms (${start}, ${end})`);
+            logger.error(`${time} | Missing parameters to find available rooms (${start}, ${end}, ${location}, ${visitors}, ${children})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             const formattedStart = moment(start, CONSTANTS.DATE_FORMAT).unix();
             const formattedEnd = moment(end, CONSTANTS.DATE_FORMAT).unix();
+            const totalVisitors = visitors + children;
 
-            logger.debug(`Finding available rooms between ${start} and ${end}`);
-            roomService.getAvailableRooms(formattedStart, formattedEnd)
+            logger.debug(`Finding available rooms on ${location} for ${totalVisitors} visitors between ${start} and ${end}`);
+            roomService.getAvailableRooms(location, formattedStart, formattedEnd, totalVisitors)
                 .then((rooms) => {
                     response.json(rooms.map(transformers.parseRoom));
                 })

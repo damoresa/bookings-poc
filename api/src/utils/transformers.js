@@ -8,6 +8,8 @@ const parseBooking = (booking) => {
         date: moment.unix(Number(booking['1'])).format(CONSTANTS.DATE_FORMAT),
         startDate: moment.unix(Number(booking['2'])).format(CONSTANTS.DATE_FORMAT),
         endDate: moment.unix(Number(booking['3'])).format(CONSTANTS.DATE_FORMAT),
+        visitors: booking['4'],
+        roomId: booking['5'],
     };
 };
 
@@ -17,7 +19,6 @@ const parseHotel = (hotel) => {
         name: hotel['1'],
         description: hotel['2'],
         location: hotel['3'],
-        visitors: Number(hotel['4']),
     };
 };
 
@@ -27,7 +28,9 @@ const parseRoom = (room) => {
         code: room['0'],
         description: room['2'],
         beds: Number(room['3']),
-        bathroom: Number(room['4']),
+        bathrooms: Number(room['4']),
+        visitors: Number(room['5']),
+        hotelId: Number(room['6']),
     };
 };
 

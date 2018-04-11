@@ -1,6 +1,6 @@
 const creation = (contract, caller, roomId, booking) => {
     return new Promise((resolve, reject) => {
-        contract.methods.createBooking(roomId, booking.start, booking.end).send({
+        contract.methods.createBooking(roomId, booking.start, booking.end, booking.visitors).send({
             from: caller,
             gas: 1000000
         })

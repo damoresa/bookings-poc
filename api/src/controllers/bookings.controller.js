@@ -28,24 +28,27 @@ class BookingsController {
         const roomId = request.body.roomId;
         const start = request.body.start;
         const end = request.body.end;
+        const visitors = Number(request.body.visitors);
+        const children = Number(request.body.children) || 0;
 
         // Validate the input parameters
-        if (!roomId || !start || !end) {
+        if (!roomId || !start || !end || !visitors || !children) {
             const time = moment().unix();
-            logger.error(`${time} | Missing parameters to book room (${roomId}, ${start}, ${end})`);
+            logger.error(`${time} | Missing parameters to book room (${roomId}, ${start}, ${end}, ${visitors}, ${children})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             const startDate = moment(start, CONSTANTS.DATE_FORMAT).unix();
             const endDate = moment(end, CONSTANTS.DATE_FORMAT).unix();
+            const totalVisitors = visitors + children;
 
-            logger.debug(`Creating booking for room ${roomId} from ${start} to ${end}`);
-            bookingService.bookRoom(roomId, startDate, endDate)
+            logger.debug(`Creating booking on room ${roomId} for ${totalVisitors} visitors from ${start} to ${end}`);
+            bookingService.bookRoom(roomId, startDate, endDate, totalVisitors)
                 .then((receipt) => {
                     if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
                         response.json({message: 'Room has been booked successfully'});
                     } else {
                         const time = moment().unix();
-                        logger.error(`${time} | Error booking room ${roomId} from ${start} to ${end}.`);
+                        logger.error(`${time} | Room ${roomId} couldn't be booked for ${totalVisitors} visitors from ${start} to ${end}.`);
                         response.status(400).json({code: `${time}`, message: 'Room couldn\'t be booked'});
                     }
                 })

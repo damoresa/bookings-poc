@@ -5,12 +5,12 @@ const utils = require('./../utils/utils');
 
 class RoomsService {
     constructor() {
-        this.getRooms.bind(this);
+        this.getRoomsForHotel.bind(this);
         this.getAvailableRooms.bind(this);
         this._getRoomsDetails.bind(this);
     }
 
-    getRooms(hotelId) {
+    getRoomsForHotel(hotelId) {
         logger.debug(`Finding rooms for hotel ${hotelId}`);
         return new Promise((resolve, reject) => {
             smartContract.contract.methods.hotelRooms(hotelId).call({ from: smartContract.caller })
@@ -32,10 +32,10 @@ class RoomsService {
         });
     }
 
-    getAvailableRooms(start, end) {
-        logger.debug(`Finding available rooms for range ${start} to ${end}`);
+    getAvailableRooms(location, start, end, visitors) {
+        logger.debug(`Finding available rooms on ${location} and ${visitors} visitors from ${start} to ${end}`);
         return new Promise((resolve, reject) => {
-            smartContract.contract.methods.availableRooms(start, end).call({ from: smartContract.caller })
+            smartContract.contract.methods.availableRooms(location, start, end, visitors).call({ from: smartContract.caller })
                 .then((roomIds) => {
                     this._getRoomsDetails(roomIds)
                         .then(resolve)
