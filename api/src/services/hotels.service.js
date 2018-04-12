@@ -1,7 +1,6 @@
 const logger = require('./logger.service');
 
 const smartContract = require('./../utils/smart-contract');
-const utils = require('./../utils/utils');
 
 class HotelsService {
     constructor() {
@@ -12,39 +11,25 @@ class HotelsService {
 
     createHotel(name, description, location) {
         logger.debug('Creating hotel');
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.createHotel(name, description, location).send({
-                from: smartContract.caller,
-                gas: smartContract.gasLimit
-            })
-                .on('receipt', resolve)
-                .on('error', (error) => utils.handleErrors(error, reject))
-                .catch((error) => utils.handleErrors(error, reject));
-        });
+        return smartContract.contract.methods.createHotel(name, description, location).send({
+            from: smartContract.caller,
+            gas: smartContract.gasLimit
+        }).on('receipt', (receipt) => { return receipt; });
     }
 
     getHotels() {
         logger.debug('Finding hotels');
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.allHotels().call({from: smartContract.caller})
-                .then((hotelIds) => {
-                    this._getHotelsDetails(hotelIds)
-                        .then(resolve)
-                        .catch((error) => utils.handleErrors(error, reject));
-                })
-                .catch((error) => utils.handleErrors(error, reject));
-        });
+        return smartContract.contract.methods.allHotels().call({from: smartContract.caller})
+            .then((hotelIds) => { return this._getHotelsDetails(hotelIds); });
     }
 
     _getHotelsDetails(hotelIds) {
         logger.debug('Finding hotels details');
-        return new Promise((resolve, reject) => {
-            const promises = [];
-            hotelIds.forEach((hotelId) => {
-                promises.push(smartContract.contract.methods.hotelDetail(hotelId).call({ from: smartContract.caller }));
-            });
-            Promise.all(promises).then(resolve).catch((error) => utils.handleErrors(error, reject));
+        const promises = [];
+        hotelIds.forEach((hotelId) => {
+            promises.push(smartContract.contract.methods.hotelDetail(hotelId).call({ from: smartContract.caller }));
         });
+        return Promise.all(promises).then((data) => { return data; });
     }
 }
 

@@ -1,6 +1,7 @@
 const express = require('express');
 const moment = require('moment');
 
+const CONSTANTS = require('./../constants/constants');
 const hotelService = require('./../services/hotels.service');
 const roomService = require('./../services/rooms.service');
 const logger = require('./../services/logger.service');
@@ -33,7 +34,7 @@ class HotelsController {
             .catch((error) => {
                 const time = moment().unix();
                 logger.error(`${time} | Error finding hotels: ${error}`);
-                response.status(500).json({code: `${time}`, message: error});
+                response.status(500).json({code: `${time}`, message: error.toString()});
             });
 
     }
@@ -63,7 +64,7 @@ class HotelsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error creating hotel: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 
@@ -87,7 +88,7 @@ class HotelsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error finding rooms: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 

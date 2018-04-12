@@ -1,6 +1,7 @@
 const moment = require('moment');
 
 const CONSTANTS = require('./../constants/constants');
+const logger = require('./../services/logger.service');
 
 const parseBooking = (booking) => {
     return {
@@ -11,6 +12,21 @@ const parseBooking = (booking) => {
         visitors: booking['4'],
         roomId: booking['5'],
     };
+};
+
+const parseError = (time, message, parameters) => {
+    let parsedMessage = `${time} | ${message} `;
+    if (parameters) {
+        parsedMessage += '(';
+        parameters.forEach((parameter) => {
+            parsedMessage += `${parameter}, `;
+        });
+        parsedMessage = parsedMessage.trim();
+        parsedMessage = parsedMessage.slice(0, parsedMessage.length - 1);
+        parsedMessage += ')';
+    }
+
+    logger.error(parsedMessage);
 };
 
 const parseHotel = (hotel) => {
@@ -36,6 +52,7 @@ const parseRoom = (room) => {
 
 module.exports = {
     parseBooking,
+    parseError,
     parseHotel,
     parseRoom
 };

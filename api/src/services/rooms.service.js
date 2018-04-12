@@ -1,7 +1,6 @@
 const logger = require('./logger.service');
 
 const smartContract = require('./../utils/smart-contract');
-const utils = require('./../utils/utils');
 
 class RoomsService {
     constructor() {
@@ -13,61 +12,37 @@ class RoomsService {
 
     createRoom(hotelId, name, description, beds, bathrooms, visitors) {
         logger.debug(`Creating new room for hotel ${hotelId}`);
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.createRoom(hotelId, name, description, beds, bathrooms, visitors).send({
-                from: smartContract.caller,
-                gas: smartContract.gasLimit
-            })
-                .on('receipt', resolve)
-                .on('error', (error) => utils.handleErrors(error, reject))
-                .catch((error) => utils.handleErrors(error, reject));
-        });
+        return smartContract.contract.methods.createRoom(hotelId, name, description, beds, bathrooms, visitors).send({
+            from: smartContract.caller,
+            gas: smartContract.gasLimit
+        }).on('receipt', (receipt) => { return receipt; });
     }
 
     getRoomsForHotel(hotelId) {
         logger.debug(`Finding rooms for hotel ${hotelId}`);
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.hotelRooms(hotelId).call({ from: smartContract.caller })
-                .then((roomIds) => {
-                    this._getRoomsDetails(roomIds)
-                        .then(resolve)
-                        .catch((error) => utils.handleErrors(error, reject));
-                })
-                .catch((error) => utils.handleErrors(error, reject));
-        });
+        return smartContract.contract.methods.hotelRooms(hotelId).call({ from: smartContract.caller })
+            .then((roomIds) => { return this._getRoomsDetails(roomIds); });
     }
 
     getRoomDetails(roomId) {
         logger.debug(`Finding defailts for room ${roomId}`);
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.roomDetail(roomId).call({ from: smartContract.caller })
-                .then(resolve)
-                .catch((error) => utils.handleErrors(error, reject));
-        });
+        return smartContract.contract.methods.roomDetail(roomId).call({ from: smartContract.caller })
+            .then((data) => { return data; });
     }
 
     getAvailableRooms(location, start, end, visitors) {
         logger.debug(`Finding available rooms on ${location} and ${visitors} visitors from ${start} to ${end}`);
-        return new Promise((resolve, reject) => {
-            smartContract.contract.methods.availableRooms(location, start, end, visitors).call({ from: smartContract.caller })
-                .then((roomIds) => {
-                    this._getRoomsDetails(roomIds)
-                        .then(resolve)
-                        .catch((error) => utils.handleErrors(error, reject));
-                })
-                .catch(reject);
-        });
+        return smartContract.contract.methods.availableRooms(location, start, end, visitors).call({ from: smartContract.caller })
+            .then((roomIds) => { return this._getRoomsDetails(roomIds); });
     }
 
     _getRoomsDetails(roomIds) {
         logger.debug('Finding rooms details');
-        return new Promise((resolve, reject) => {
-            const promises = [];
-            roomIds.forEach((roomId) => {
-                promises.push(smartContract.contract.methods.roomDetail(roomId).call({ from: smartContract.caller }));
-            });
-            Promise.all(promises).then(resolve).catch((error) => utils.handleErrors(error, reject));
+        const promises = [];
+        roomIds.forEach((roomId) => {
+            promises.push(smartContract.contract.methods.roomDetail(roomId).call({ from: smartContract.caller }));
         });
+        return Promise.all(promises).then((data) => { return data; });
     }
 }
 

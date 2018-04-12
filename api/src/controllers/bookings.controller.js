@@ -55,7 +55,7 @@ class BookingsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error booking room ${roomId} from ${start} to ${end}: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 
@@ -71,7 +71,7 @@ class BookingsController {
             .catch((error) => {
                 const time = moment().unix();
                 logger.error(`${time} | Error finding bookings: ${error}`);
-                response.status(500).json({code: `${time}`, message: error});
+                response.status(500).json({code: `${time}`, message: error.toString()});
             });
 
     }
@@ -93,7 +93,7 @@ class BookingsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error finding bookings for room: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 

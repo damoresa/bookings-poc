@@ -48,7 +48,7 @@ class RoomsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error finding available rooms: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 
@@ -82,7 +82,7 @@ class RoomsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error creating room for hotel ${hotelId}: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 
@@ -105,7 +105,7 @@ class RoomsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error finding room details: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error});
+                    response.status(500).json({code: `${time}`, message: error.toString()});
                 });
         }
 
