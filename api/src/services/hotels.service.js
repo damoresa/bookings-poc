@@ -5,8 +5,22 @@ const utils = require('./../utils/utils');
 
 class HotelsService {
     constructor() {
+        this.createHotel.bind(this);
         this.getHotels.bind(this);
         this._getHotelsDetails.bind(this);
+    }
+
+    createHotel(name, description, location) {
+        logger.debug('Creating hotel');
+        return new Promise((resolve, reject) => {
+            smartContract.contract.methods.createHotel(name, description, location).send({
+                from: smartContract.caller,
+                gas: smartContract.gasLimit
+            })
+                .on('receipt', resolve)
+                .on('error', (error) => utils.handleErrors(error, reject))
+                .catch((error) => utils.handleErrors(error, reject));
+        });
     }
 
     getHotels() {

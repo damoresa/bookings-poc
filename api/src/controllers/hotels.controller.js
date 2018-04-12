@@ -19,6 +19,7 @@ class HotelsController {
     init() {
         this._router = express.Router();
         this._router.get('/', this.getHotels.bind(this));
+        this._router.post('/', this.createHotel.bind(this));
         this._router.get('/:hotelId/rooms', this.getHotelRooms.bind(this));
     }
 
@@ -34,6 +35,38 @@ class HotelsController {
                 logger.error(`${time} | Error finding hotels: ${error}`);
                 response.status(500).json({code: `${time}`, message: error});
             });
+
+    }
+
+    createHotel(request, response) {
+
+        const name = request.body.name;
+        const description = request.body.description;
+        const location = request.body.location;
+
+        if (!name || !description || !location) {
+            const time = moment().unix();
+            logger.error(`${time} | Missing parameters to create hotel (${name}, ${description}, ${location})`);
+            response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
+        } else {
+            logger.debug('Creating hotel');
+            hotelService.createHotel(name, description, location)
+                .then((receipt) => {
+                    if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
+                        response.json({message: 'Hotel has been created successfully'});
+                    } else {
+                        const time = moment().unix();
+                        logger.error(`${time} | Unable to create hotel.`);
+                        response.status(400).json({code: `${time}`, message: 'Hotel couldn\'t be created'});
+                    }
+                })
+                .catch((error) => {
+                    const time = moment().unix();
+                    logger.error(`${time} | Error creating hotel: ${error}`);
+                    response.status(500).json({code: `${time}`, message: error});
+                });
+        }
+
 
     }
 

@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   title: Hotel booking API
   description: Hotel booking demo REST API
-  version: "1.0.1"
+  version: "1.0.2"
 host: ec2-18-196-241-71.eu-central-1.compute.amazonaws.com
 schemes:
   - http
@@ -23,6 +23,26 @@ paths:
             $ref: '#/definitions/GetHotelsReponse'
         '400':
           description: Response when no hotels were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: createHotel
+      description: Endpoint that creates a hotel on the DLT
+      tags:
+        - Management
+      parameters:
+        - $ref: '#/parameters/CreateHotel'
+      responses:
+        '200':
+          description: Response received when hotel has been created on the DLT
+          schema:
+            $ref: '#/definitions/Success'
+        '400':
+          description: Response when the hotel couldn't be created
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -69,6 +89,26 @@ paths:
             $ref: '#/definitions/GetRoomsResponse'
         '400':
           description: Response when no rooms were found with the given search criteria
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      operationId: createRoom
+      description: Endpoint that creates a room on the DLT
+      parameters:
+        - $ref: '#/parameters/CreateRoom'
+      tags:
+        - Management
+      responses:
+        '200':
+          description: Response received when the room has been successfully created
+          schema:
+            $ref: '#/definitions/Success'
+        '400':
+          description: Response received if the room couldn't be created
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -193,6 +233,45 @@ parameters:
     type: number
     description: Amount of children on the booking request
     required: true
+  CreateHotel:
+    name: hotel
+    in: body
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Hotel name
+        description:
+          type: string
+          description: Hotel description
+        location:
+          type: string
+          description: Hotel location
+  CreateRoom:
+    name: room
+    in: body
+    schema:
+      type: object
+      properties:
+        hotelId:
+          type: string
+          description: Unique identifier of the hotel the room is being created at
+        name:
+          type: string
+          description: Room name
+        description:
+          type: string
+          description: Room description
+        beds:
+          type: number
+          description: Number of beds in the room
+        bathrooms:
+          type: number
+          description: Number of bathrooms in the room
+        visitors:
+          type: number
+          description: Room capacity
   HotelId:
     name: hotelId
     in: path
@@ -261,7 +340,7 @@ definitions:
         description: Amount of bathrooms on the room
       visitors:
         type: number
-        description: Allowed amount of visitors at the room
+        description: Visitors capacity
       hotelId:
         type: number
         description: Unique identifier of the hotel the room belongs to

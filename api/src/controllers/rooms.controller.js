@@ -19,6 +19,7 @@ class RoomsController {
     init() {
         this._router = express.Router();
         this._router.get('/', this.getAvailableRooms.bind(this));
+        this._router.post('/', this.createRoom.bind(this));
         this._router.get('/:roomId', this.getRoomDetail.bind(this));
     }
 
@@ -47,6 +48,40 @@ class RoomsController {
                 .catch((error) => {
                     const time = moment().unix();
                     logger.error(`${time} | Error finding available rooms: ${error}`);
+                    response.status(500).json({code: `${time}`, message: error});
+                });
+        }
+
+    }
+
+    createRoom(request, response) {
+
+        const hotelId = request.body.hotelId;
+        const name = request.body.name;
+        const description = request.body.description;
+        const beds = request.body.beds;
+        const bathrooms = request.body.bathrooms;
+        const visitors = request.body.visitors;
+
+        if (!hotelId || !name || !description || !beds || !bathrooms || !visitors) {
+            const time = moment().unix();
+            logger.error(`${time} | Missing parameters to find available rooms (${hotelId}, ${name}, ${description}, ${beds}, ${bathrooms}, ${visitors})`);
+            response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
+        } else {
+            logger.debug(`Creating a new room on hotel ${hotelId}`);
+            roomService.createRoom(hotelId, name, description, Number(beds), Number(bathrooms), Number(visitors))
+                .then((receipt) => {
+                    if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
+                        response.json({message: 'Room has been created successfully'});
+                    } else {
+                        const time = moment().unix();
+                        logger.error(`${time} | Unable to create room for hotel ${hotelId}.`);
+                        response.status(400).json({code: `${time}`, message: 'Room couldn\'t be created'});
+                    }
+                })
+                .catch((error) => {
+                    const time = moment().unix();
+                    logger.error(`${time} | Error creating room for hotel ${hotelId}: ${error}`);
                     response.status(500).json({code: `${time}`, message: error});
                 });
         }
