@@ -7,6 +7,7 @@ class BookingsService {
         this.bookRoom.bind(this);
         this.getBookings.bind(this);
         this.getBookingsForRoom.bind(this);
+        this.pastEvents.bind(this);
         this._getBookingsDetails.bind(this);
     }
 
@@ -30,6 +31,11 @@ class BookingsService {
             .then((bookingIds) => {
                 return this._getBookingsDetails(bookingIds);
             });
+    }
+
+    pastEvents(initialBlock) {
+        logger.debug('Retrieving booking creation history');
+        return smartContract.contract.getPastEvents("BookingCreated", { fromBlock: initialBlock || 0, toBlock: "latest" });
     }
 
     _getBookingsDetails(bookingIds) {

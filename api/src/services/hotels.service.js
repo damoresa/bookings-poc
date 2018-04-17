@@ -6,30 +6,37 @@ class HotelsService {
     constructor() {
         this.createHotel.bind(this);
         this.getHotels.bind(this);
+        this.pastEvents.bind(this);
         this._getHotelsDetails.bind(this);
     }
 
-    createHotel(name, description, location) {
+    async createHotel(name, description, location) {
         logger.debug('Creating hotel');
-        return smartContract.contract.methods.createHotel(name, description, location).send({
+        return await smartContract.contract.methods.createHotel(name, description, location).send({
             from: smartContract.caller,
             gas: smartContract.gasLimit
         }).on('receipt', (receipt) => { return receipt; });
     }
 
-    getHotels() {
+    async getHotels() {
         logger.debug('Finding hotels');
-        return smartContract.contract.methods.allHotels().call({from: smartContract.caller})
-            .then((hotelIds) => { return this._getHotelsDetails(hotelIds); });
+        const hotelIds = await smartContract.contract.methods.allHotels().call({from: smartContract.caller});
+        const hotels = await this._getHotelsDetails(hotelIds);
+        return hotels;
     }
 
-    _getHotelsDetails(hotelIds) {
+    async _getHotelsDetails(hotelIds) {
         logger.debug('Finding hotels details');
         const promises = [];
         hotelIds.forEach((hotelId) => {
             promises.push(smartContract.contract.methods.hotelDetail(hotelId).call({ from: smartContract.caller }));
         });
-        return Promise.all(promises).then((data) => { return data; });
+        return await Promise.all(promises);
+    }
+
+    pastEvents(initialBlock) {
+        logger.debug('Retrieving hotel creation history');
+        return smartContract.contract.getPastEvents("HotelCreated", { fromBlock: initialBlock || 0, toBlock: "latest" });
     }
 }
 

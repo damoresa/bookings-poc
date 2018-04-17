@@ -25,9 +25,11 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8501'));
 // Bookings V12.A: 0x6939Cc119a7c1799FB0A546e9BB8B4325B540709
 // Bookings V12.B: 0x74B5A730F913c3064c5Fb9FF594117353aC2477d
 // Bookings V13: 0xEEf2e0a43F2E587116ae7315AF8928382ECCD65C
+// Bookings V14: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
+// Bookings V15: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
 
 const jsonInterface = JSON.parse(interface);
-const contract = new web3.eth.Contract(jsonInterface, '0xEEf2e0a43F2E587116ae7315AF8928382ECCD65C');
+const contract = new web3.eth.Contract(jsonInterface, '0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba');
 const caller = '0x2a8d318530f3795db1de230098d654531b8a52e3';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
@@ -54,28 +56,32 @@ const rooms = [
         description: 'Small sized room',
         beds: 2,
         bathrooms: 1,
-        visitors: 2
+        visitors: 2,
+        price: 40
     },
     {
         name: 'Medium room',
         description: 'Medium sized room',
         beds: 4,
         bathrooms: 1,
-        visitors: 4
+        visitors: 4,
+        price: 60
     },
     {
         name: 'Minor suite',
         description: 'Smallest suite',
         beds: 6,
         bathrooms: 2,
-        visitors: 6
+        visitors: 6,
+        price: 120
     },
     {
         name: 'Major suite',
         description: 'Biggest suite',
         beds: 8,
         bathrooms: 3,
-        visitors: 8
+        visitors: 8,
+        price: 200
     }
 ];
 
@@ -144,17 +150,17 @@ const initializeData = () => {
                     hotels.forEach((hotel) => {
                         const roomIdx = generateRandomNumber(0, rooms.length);
                         console.log(`Selected room ${roomIdx}`);
-                        roomCreationPromises.push(roomScripts.creation(contract, caller, hotel['0'], rooms[roomIdx]));
+                        roomCreationPromises.push(roomScripts.creation(contract, caller, hotel['code'], rooms[roomIdx]));
                     });
                     Promise.all(roomCreationPromises).then((receipt) => {
                         console.log('Created rooms');
                         hotels.forEach((hotel) => {
-                            roomScripts.search(contract, caller, hotel['0'])
+                            roomScripts.search(contract, caller, hotel['code'])
                                 .then((rooms) => {
-                                    console.log(`Rooms for hotel ${hotel['0']}: ${JSON.stringify(rooms)}`);
+                                    console.log(`Rooms for hotel ${hotel['code']}: ${JSON.stringify(rooms)}`);
                                     const roomIdx = generateRandomNumber(0, rooms.length);
-                                    console.log(`Selected room ${rooms[roomIdx]['0']}`);
-                                    const roomId = rooms[roomIdx]['0'];
+                                    console.log(`Selected room ${rooms[roomIdx]['code']}`);
+                                    const roomId = rooms[roomIdx]['code'];
                                     const bookingCreationPromises = [];
                                     bookings.map((booking) => {
                                         return {

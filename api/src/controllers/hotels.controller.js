@@ -24,22 +24,21 @@ class HotelsController {
         this._router.get('/:hotelId/rooms', this.getHotelRooms.bind(this));
     }
 
-    getHotels(request, response) {
+    async getHotels(request, response) {
 
         logger.debug('Finding hotels');
-        hotelService.getHotels()
-            .then((hotels) => {
-                response.json(hotels.map(transformers.parseHotel));
-            })
-            .catch((error) => {
-                const time = moment().unix();
-                logger.error(`${time} | Error finding hotels: ${error}`);
-                response.status(500).json({code: `${time}`, message: error.toString()});
-            });
+        try {
+            const hotels = await hotelService.getHotels();
+            response.json(hotels.map(transformers.parseHotel));
+        } catch (error) {
+            const time = moment().unix();
+            logger.error(`${time} | Error finding hotels: ${error}`);
+            response.status(500).json({code: `${time}`, message: error.toString()});
+        }
 
     }
 
-    createHotel(request, response) {
+    async createHotel(request, response) {
 
         const name = request.body.name;
         const description = request.body.description;
@@ -51,27 +50,26 @@ class HotelsController {
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug('Creating hotel');
-            hotelService.createHotel(name, description, location)
-                .then((receipt) => {
-                    if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
-                        response.json({message: 'Hotel has been created successfully'});
-                    } else {
-                        const time = moment().unix();
-                        logger.error(`${time} | Unable to create hotel.`);
-                        response.status(400).json({code: `${time}`, message: 'Hotel couldn\'t be created'});
-                    }
-                })
-                .catch((error) => {
+            try {
+                const receipt = await hotelService.createHotel(name, description, location);
+                if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
+                    response.json({message: 'Hotel has been created successfully'});
+                } else {
                     const time = moment().unix();
-                    logger.error(`${time} | Error creating hotel: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error.toString()});
-                });
+                    logger.error(`${time} | Unable to create hotel.`);
+                    response.status(400).json({code: `${time}`, message: 'Hotel couldn\'t be created'});
+                }
+            } catch(error) {
+                const time = moment().unix();
+                logger.error(`${time} | Error creating hotel: ${error}`);
+                response.status(500).json({code: `${time}`, message: error.toString()});
+            }
         }
 
 
     }
 
-    getHotelRooms(request, response) {
+    async getHotelRooms(request, response) {
 
         const hotelId = request.params.hotelId;
 
@@ -81,15 +79,14 @@ class HotelsController {
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug('Finding rooms');
-            roomService.getRoomsForHotel(hotelId)
-                .then((rooms) => {
-                    response.json(rooms.map(transformers.parseRoom));
-                })
-                .catch((error) => {
-                    const time = moment().unix();
-                    logger.error(`${time} | Error finding rooms: ${error}`);
-                    response.status(500).json({code: `${time}`, message: error.toString()});
-                });
+            try {
+                const rooms = await roomService.getRoomsForHotel(hotelId);
+                response.json(rooms.map(transformers.parseRoom));
+            } catch(error) {
+                const time = moment().unix();
+                logger.error(`${time} | Error finding rooms: ${error}`);
+                response.status(500).json({code: `${time}`, message: error.toString()});
+            }
         }
 
     }

@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   title: Hotel booking API
   description: Hotel booking demo REST API
-  version: "1.0.2"
+  version: "1.0.3"
 host: ec2-18-196-241-71.eu-central-1.compute.amazonaws.com
 schemes:
   - http
@@ -196,6 +196,63 @@ paths:
           description: Response when an unexpected error happens on the API
           schema:
             $ref: '#/definitions/Error'
+  /historic/hotels:
+    get:
+      operationId: getHotelsHistoric
+      description: Endpoint that returns the hotel transactions historic on the DLT
+      tags:
+        - Historic
+      responses:
+        '200':
+          description: Response with the found hotel transactions
+          schema:
+            $ref: '#/definitions/GetHotelsHistoricReponse'
+        '400':
+          description: Response when no hotel transactions were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /historic/rooms:
+    get:
+      operationId: getRoomsHistoric
+      description: Endpoint that returns the room ransactions historic on the DLT
+      tags:
+        - Historic
+      responses:
+        '200':
+          description: Response with the found room transactions
+          schema:
+            $ref: '#/definitions/GetRoomsHistoricReponse'
+        '400':
+          description: Response when no room transactions were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
+  /historic/bookings:
+    get:
+      operationId: getBookingsHistoric
+      description: Endpoint that returns the booking ransactions historic on the DLT
+      tags:
+        - Historic
+      responses:
+        '200':
+          description: Response with the found booking transactions
+          schema:
+            $ref: '#/definitions/GetBookingsHistoricReponse'
+        '400':
+          description: Response when no room transactions were found
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Response when an unexpected error happens on the API
+          schema:
+            $ref: '#/definitions/Error'
 parameters:
   BookingStartDate:
     name: bookingStart
@@ -272,6 +329,9 @@ parameters:
         visitors:
           type: number
           description: Room capacity
+        price:
+          type: number
+          description: Room price per night
   HotelId:
     name: hotelId
     in: path
@@ -341,6 +401,9 @@ definitions:
       visitors:
         type: number
         description: Visitors capacity
+      price:
+        type: number
+        description: Room price per night
       hotelId:
         type: number
         description: Unique identifier of the hotel the room belongs to
@@ -389,6 +452,48 @@ definitions:
         items:
           $ref: '#/definitions/Booking'
         description: Retrieved bookings list.
+  Historic:
+    type: object
+    properties:
+      transaction:
+        type: string
+        description: Transaction hash on which the element was registered
+  HotelHistoric:
+    allOf:
+      - $ref: '#/definitions/Historic'
+      - $ref: '#/definitions/Hotel'
+  RoomHistoric:
+    allOf:
+      - $ref: '#/definitions/Historic'
+      - $ref: '#/definitions/Room'
+  BookingHistoric:
+    allOf:
+      - $ref: '#/definitions/Historic'
+      - $ref: '#/definitions/Booking'
+  GetHotelsHistoricResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/HotelHistoric'
+        description: Retrieved hotel transactions historic.
+  GetRoomsHistoricResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/RoomHistoric'
+        description: Retrieved room transactions historic.
+  GetBookingsHistoricResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/BookingHistoric'
+        description: Retrieved booking transactions historic.
   Success:
     type: object
     properties:

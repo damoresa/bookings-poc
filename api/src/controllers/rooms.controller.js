@@ -6,6 +6,16 @@ const roomService = require('./../services/rooms.service');
 const logger = require('./../services/logger.service');
 const transformers = require('./../utils/transformers');
 
+roomService.creationEvent(
+    (data) => {
+        logger.debug(JSON.stringify(data));
+        logger.debug(JSON.stringify(data.returnValues));
+    },
+    (error) => {
+        logger.error(error);
+    }
+);
+
 class RoomsController {
 
     get router() {
@@ -20,7 +30,8 @@ class RoomsController {
         this._router = express.Router();
         this._router.get('/', this.getAvailableRooms.bind(this));
         this._router.post('/', this.createRoom.bind(this));
-        this._router.get('/:roomId', this.getRoomDetail.bind(this));
+        // this._router.get('/:roomId', this.getRoomDetail.bind(this));
+        this._router.get('/history', this.getRoomsHistory.bind(this));
     }
 
     getAvailableRooms(request, response) {
@@ -62,14 +73,15 @@ class RoomsController {
         const beds = request.body.beds;
         const bathrooms = request.body.bathrooms;
         const visitors = request.body.visitors;
+        const price = request.body.price;
 
-        if (!hotelId || !name || !description || !beds || !bathrooms || !visitors) {
+        if (!hotelId || !name || !description || !beds || !bathrooms || !visitors || !price) {
             const time = moment().unix();
-            logger.error(`${time} | Missing parameters to find available rooms (${hotelId}, ${name}, ${description}, ${beds}, ${bathrooms}, ${visitors})`);
+            logger.error(`${time} | Missing parameters to find available rooms (${hotelId}, ${name}, ${description}, ${beds}, ${bathrooms}, ${visitors}, ${price})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug(`Creating a new room on hotel ${hotelId}`);
-            roomService.createRoom(hotelId, name, description, Number(beds), Number(bathrooms), Number(visitors))
+            roomService.createRoom(hotelId, name, description, Number(beds), Number(bathrooms), Number(visitors), Number(price))
                 .then((receipt) => {
                     if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
                         response.json({message: 'Room has been created successfully'});
@@ -109,6 +121,20 @@ class RoomsController {
                 });
         }
 
+    }
+
+    getRoomsHistory(request, response) {
+
+        logger.debug(`Finding rooms history`);
+        roomService.pastEvents()
+            .then((data) => {
+                response.json({ events: data });
+            })
+            .catch((error) => {
+                const time = moment().unix();
+                logger.error(`${time} | Error retrieving rooms history: ${error}`);
+                response.status(500).json({code: `${time}`, message: error.toString()});
+            });
     }
 
 }

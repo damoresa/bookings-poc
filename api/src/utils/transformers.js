@@ -5,13 +5,19 @@ const logger = require('./../services/logger.service');
 
 const parseBooking = (booking) => {
     return {
-        code: booking['0'],
-        date: moment.unix(Number(booking['1'])).format(CONSTANTS.DATE_FORMAT),
-        startDate: moment.unix(Number(booking['2'])).format(CONSTANTS.DATE_FORMAT),
-        endDate: moment.unix(Number(booking['3'])).format(CONSTANTS.DATE_FORMAT),
-        visitors: booking['4'],
-        roomId: booking['5'],
+        code: booking['code'],
+        date: moment.unix(Number(booking['date'])).format(CONSTANTS.DATE_FORMAT),
+        startDate: moment.unix(Number(booking['start'])).format(CONSTANTS.DATE_FORMAT),
+        endDate: moment.unix(Number(booking['end'])).format(CONSTANTS.DATE_FORMAT),
+        visitors: Number(booking['visitors']),
+        roomId: Number(booking['roomCode']),
     };
+};
+
+const parseBookingHistoric = (event) => {
+    const booking = parseBooking(event.returnValues);
+    booking['transaction'] = event.transactionHash;
+    return booking;
 };
 
 const parseError = (time, message, parameters) => {
@@ -31,28 +37,43 @@ const parseError = (time, message, parameters) => {
 
 const parseHotel = (hotel) => {
     return {
-        code: hotel['0'],
-        name: hotel['1'],
-        description: hotel['2'],
-        location: hotel['3'],
+        code: hotel['code'],
+        name: hotel['name'],
+        description: hotel['description'],
+        location: hotel['location'],
     };
 };
 
+const parseHotelHistoric = (event) => {
+    const hotel = parseHotel(event.returnValues);
+    hotel['transaction'] = event.transactionHash;
+    return hotel;
+};
 
 const parseRoom = (room) => {
     return {
-        code: room['0'],
-        description: room['2'],
-        beds: Number(room['3']),
-        bathrooms: Number(room['4']),
-        visitors: Number(room['5']),
-        hotelId: Number(room['6']),
+        code: room['code'],
+        description: room['description'],
+        beds: Number(room['beds']),
+        bathrooms: Number(room['bathrooms']),
+        visitors: Number(room['visitors']),
+        price: Number(room['price']),
+        hotelId: Number(room['hotelCode']),
     };
+};
+
+const parseRoomHistoric = (event) => {
+    const room = parseRoom(event.returnValues);
+    room['transaction'] = event.transactionHash;
+    return room;
 };
 
 module.exports = {
     parseBooking,
+    parseBookingHistoric,
     parseError,
     parseHotel,
-    parseRoom
+    parseHotelHistoric,
+    parseRoom,
+    parseRoomHistoric
 };

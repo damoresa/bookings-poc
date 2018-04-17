@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const Web3 = require('web3');
 
 const CONSTANTS = require('./../constants/constants');
@@ -18,7 +17,8 @@ class SmartContract {
         this._interface = JSON.parse(contractInterface);
 
         const web3 = new Web3();
-        web3.setProvider(new web3.providers.HttpProvider(web3Provider));
+        // web3.setProvider(new web3.providers.HttpProvider(web3Provider));
+        web3.setProvider(new web3.providers.WebsocketProvider(web3Provider));
         this._contract = new web3.eth.Contract(this._interface, contractHash);
         logger.debug(`Allocated contract ${contractHash}`);
 

@@ -1,6 +1,6 @@
 {
   "name": "hotels",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Hotels demo Smart Contract",
   "scripts": {
     "test": "mocha",

@@ -2,6 +2,10 @@ pragma solidity ^0.4.0;
 
 contract Hotels {
 
+    // TODO: POC only supports a single user, use addresses for hotels / bookings on production
+    // TODO: Split into smaller contracts as it's too big for the main network
+    //       One possible way of doing this is to keep a master contract which invokes all of these.
+
     uint internal BOOKING_ID = 0;
     struct Booking {
         uint code;
@@ -27,12 +31,15 @@ contract Hotels {
         uint beds;
         uint bathrooms;
         uint visitors;
+        uint price;
     }
 
-    // TODO: Add events - hotel, room, booking creation
-    // TODO: POC only supports a single user, use addresses for hotels / bookings on production
-    // TODO: Split into smaller contracts as it's too big for the main network
+    // Events for hotel, room, booking creation
+    event BookingCreated(uint indexed code, uint date, uint start, uint end, uint visitors, uint roomCode);
+    event HotelCreated(uint indexed code, string name, string description, string location);
+    event RoomCreated(uint indexed code, string name, string description, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode);
 
+    // Internal data stores
     Booking[] internal bookings;
     mapping(uint => uint) internal bookingToRoom;
     mapping(uint => uint) internal roomBookingsCount;
@@ -114,16 +121,19 @@ contract Hotels {
 
     function createBooking(uint roomCode, uint startDate, uint endDate, uint visitors) external canBeBooked(roomCode, startDate, endDate, visitors) returns (uint) {
         uint bookingCode = ++BOOKING_ID;
-        Booking memory booking = Booking(bookingCode, now, startDate, endDate, visitors);
+        uint date = now;
+        Booking memory booking = Booking(bookingCode, date, startDate, endDate, visitors);
         bookings.push(booking);
 
         bookingToRoom[bookingCode] = roomCode;
         roomBookingsCount[roomCode]++;
 
+        emit BookingCreated(bookingCode, date, startDate, endDate, visitors, bookingToRoom[bookingCode]);
+
         return bookingCode;
     }
 
-    function bookingDetail(uint bookingId) external view returns (uint, uint, uint, uint, uint, uint) {
+    function bookingDetail(uint bookingId) external view returns (uint code, uint date, uint start, uint end, uint visitors, uint roomCode) {
         uint pointer = 0;
         bool found = false;
         Booking memory booking;
@@ -162,19 +172,21 @@ contract Hotels {
         return result;
     }
 
-    function createRoom(uint hotelCode, string name, string description, uint beds, uint bathrooms, uint visitors) external returns (uint) {
+    function createRoom(uint hotelCode, string name, string description, uint beds, uint bathrooms, uint visitors, uint price) external returns (uint) {
         uint roomCode = ++ROOM_ID;
-        Room memory room = Room(roomCode, name, description, beds, bathrooms, visitors);
+        Room memory room = Room(roomCode, name, description, beds, bathrooms, visitors, price);
         rooms.push(room);
 
         roomToHotel[roomCode] = hotelCode;
         roomBookingsCount[roomCode] = 0;
         hotelRoomsCount[hotelCode]++;
 
+        emit RoomCreated(roomCode, name, description, beds, bathrooms, visitors, price, roomToHotel[roomCode]);
+
         return roomCode;
     }
 
-    function roomDetail(uint roomId) external view returns (uint, string, string, uint, uint, uint, uint) {
+    function roomDetail(uint roomId) external view returns (uint code, string name, string description, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode) {
         uint pointer = 0;
         bool found = false;
         Room memory room;
@@ -188,7 +200,7 @@ contract Hotels {
             }
         }
 
-        return (room.code, room.name, room.description, room.beds, room.bathrooms, room.visitors, roomToHotel[room.code]);
+        return (room.code, room.name, room.description, room.beds, room.bathrooms, room.visitors, room.price, roomToHotel[room.code]);
     }
 
     function availableRooms(string location, uint startDate, uint endDate, uint visitors) external view returns (uint[]) {
@@ -244,10 +256,12 @@ contract Hotels {
 
         hotelRoomsCount[hotelCode] = 0;
 
+        emit HotelCreated(hotelCode, name, description, location);
+
         return hotelCode;
     }
 
-    function hotelDetail(uint hotelId) external view returns (uint, string, string, string) {
+    function hotelDetail(uint hotelId) external view returns (uint code, string name, string description, string location) {
         uint pointer = 0;
         bool found = false;
         Hotel memory hotel;
