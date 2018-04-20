@@ -21,6 +21,8 @@ contract Hotels {
         string name;
         string description;
         string location;
+        uint rating;
+        uint reviews;
     }
 
     uint internal ROOM_ID = 0;
@@ -28,6 +30,7 @@ contract Hotels {
         uint code;
         string name;
         string description;
+        string cancellation;
         uint beds;
         uint bathrooms;
         uint visitors;
@@ -35,9 +38,11 @@ contract Hotels {
     }
 
     // Events for hotel, room, booking creation
+    // Only static size types can be indexed:
+    // https://ethereum.stackexchange.com/questions/6840/indexed-event-with-string-not-getting-logged/7170#7170
     event BookingCreated(uint indexed code, uint date, uint start, uint end, uint visitors, uint roomCode);
-    event HotelCreated(uint indexed code, string name, string description, string location);
-    event RoomCreated(uint indexed code, string name, string description, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode);
+    event HotelCreated(uint indexed code, string name, string description, string location, uint rating, uint reviews);
+    event RoomCreated(uint indexed code, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode);
 
     // Internal data stores
     Booking[] internal bookings;
@@ -172,21 +177,21 @@ contract Hotels {
         return result;
     }
 
-    function createRoom(uint hotelCode, string name, string description, uint beds, uint bathrooms, uint visitors, uint price) external returns (uint) {
+    function createRoom(uint hotelCode, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price) external returns (uint) {
         uint roomCode = ++ROOM_ID;
-        Room memory room = Room(roomCode, name, description, beds, bathrooms, visitors, price);
+        Room memory room = Room(roomCode, name, description, cancellation, beds, bathrooms, visitors, price);
         rooms.push(room);
 
         roomToHotel[roomCode] = hotelCode;
         roomBookingsCount[roomCode] = 0;
         hotelRoomsCount[hotelCode]++;
 
-        emit RoomCreated(roomCode, name, description, beds, bathrooms, visitors, price, roomToHotel[roomCode]);
+        emit RoomCreated(roomCode, name, description, cancellation, beds, bathrooms, visitors, price, roomToHotel[roomCode]);
 
         return roomCode;
     }
 
-    function roomDetail(uint roomId) external view returns (uint code, string name, string description, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode) {
+    function roomDetail(uint roomId) external view returns (uint code, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode) {
         uint pointer = 0;
         bool found = false;
         Room memory room;
@@ -200,7 +205,7 @@ contract Hotels {
             }
         }
 
-        return (room.code, room.name, room.description, room.beds, room.bathrooms, room.visitors, room.price, roomToHotel[room.code]);
+        return (room.code, room.name, room.description, room.cancellation, room.beds, room.bathrooms, room.visitors, room.price, roomToHotel[room.code]);
     }
 
     function availableRooms(string location, uint startDate, uint endDate, uint visitors) external view returns (uint[]) {
@@ -249,19 +254,19 @@ contract Hotels {
         return hotel;
     }
 
-    function createHotel(string name, string description, string location) external returns (uint) {
+    function createHotel(string name, string description, string location, uint rating, uint reviews) external returns (uint) {
         uint hotelCode = ++HOTEL_ID;
-        Hotel memory hotel = Hotel(hotelCode, name, description, location);
+        Hotel memory hotel = Hotel(hotelCode, name, description, location, rating, reviews);
         hotels.push(hotel);
 
         hotelRoomsCount[hotelCode] = 0;
 
-        emit HotelCreated(hotelCode, name, description, location);
+        emit HotelCreated(hotelCode, name, description, location, rating, reviews);
 
         return hotelCode;
     }
 
-    function hotelDetail(uint hotelId) external view returns (uint code, string name, string description, string location) {
+    function hotelDetail(uint hotelId) external view returns (uint code, string name, string description, string location, uint rating, uint reviews) {
         uint pointer = 0;
         bool found = false;
         Hotel memory hotel;
@@ -275,7 +280,7 @@ contract Hotels {
             }
         }
 
-        return (hotel.code, hotel.name, hotel.description, hotel.location);
+        return (hotel.code, hotel.name, hotel.description, hotel.location, hotel.rating, hotel.reviews);
     }
 
     function allHotels() external view returns (uint[]) {

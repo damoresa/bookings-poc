@@ -20,7 +20,7 @@ paths:
         '200':
           description: Response with the found hotels
           schema:
-            $ref: '#/definitions/GetHotelsReponse'
+            $ref: '#/definitions/GetHotelsResponse'
         '400':
           description: Response when no hotels were found
           schema:
@@ -206,7 +206,7 @@ paths:
         '200':
           description: Response with the found hotel transactions
           schema:
-            $ref: '#/definitions/GetHotelsHistoricReponse'
+            $ref: '#/definitions/GetHotelsHistoricResponse'
         '400':
           description: Response when no hotel transactions were found
           schema:
@@ -225,7 +225,7 @@ paths:
         '200':
           description: Response with the found room transactions
           schema:
-            $ref: '#/definitions/GetRoomsHistoricReponse'
+            $ref: '#/definitions/GetRoomsHistoricResponse'
         '400':
           description: Response when no room transactions were found
           schema:
@@ -244,7 +244,7 @@ paths:
         '200':
           description: Response with the found booking transactions
           schema:
-            $ref: '#/definitions/GetBookingsHistoricReponse'
+            $ref: '#/definitions/GetBookingsHistoricResponse'
         '400':
           description: Response when no room transactions were found
           schema:
@@ -305,6 +305,12 @@ parameters:
         location:
           type: string
           description: Hotel location
+        rating:
+          type: number
+          description: Hotel rating
+        reviews:
+          type: number
+          description: Amount of hotel reviews
   CreateRoom:
     name: room
     in: body
@@ -320,6 +326,9 @@ parameters:
         description:
           type: string
           description: Room description
+        cancellation:
+          type: string
+          description: Room booking cancellation description
         beds:
           type: number
           description: Number of beds in the room
@@ -383,6 +392,12 @@ definitions:
       location:
         type: string
         description: Hotel location
+      rating:
+        type: number
+        description: Hotel rating
+      reviews:
+        type: number
+        description: Amount of hotel reviews
   Room:
     type: object
     properties:
@@ -392,6 +407,9 @@ definitions:
       description:
         type: string
         description: Room description
+      cancellation:
+        type: string
+        description: Room booking cancellation conditions
       beds:
         type: number
         description: Amount of beds on the room
@@ -428,7 +446,7 @@ definitions:
       roomId:
         type: number
         description: Unique identifier of the room the booking is associated with
-  GetHotelsReponse:
+  GetHotelsResponse:
     type: object
     properties:
       result:

@@ -29,10 +29,10 @@ class BookingsController {
         const start = request.body.start;
         const end = request.body.end;
         const visitors = Number(request.body.visitors);
-        const children = Number(request.body.children) || 0;
+        const children = Number(request.body.children);
 
         // Validate the input parameters
-        if (!roomId || !start || !end || !visitors || !children) {
+        if (!roomId || !start || !end || isNaN(visitors) || isNaN(children)) {
             const time = moment().unix();
             logger.error(`${time} | Missing parameters to book room (${roomId}, ${start}, ${end}, ${visitors}, ${children})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });

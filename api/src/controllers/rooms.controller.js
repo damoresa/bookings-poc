@@ -6,15 +6,15 @@ const roomService = require('./../services/rooms.service');
 const logger = require('./../services/logger.service');
 const transformers = require('./../utils/transformers');
 
-roomService.creationEvent(
-    (data) => {
-        logger.debug(JSON.stringify(data));
-        logger.debug(JSON.stringify(data.returnValues));
-    },
-    (error) => {
-        logger.error(error);
-    }
-);
+// roomService.creationEvent(
+//     (data) => {
+//         logger.debug(JSON.stringify(data));
+//         logger.debug(JSON.stringify(data.returnValues));
+//     },
+//     (error) => {
+//         logger.error(error);
+//     }
+// );
 
 class RoomsController {
 
@@ -30,8 +30,7 @@ class RoomsController {
         this._router = express.Router();
         this._router.get('/', this.getAvailableRooms.bind(this));
         this._router.post('/', this.createRoom.bind(this));
-        // this._router.get('/:roomId', this.getRoomDetail.bind(this));
-        this._router.get('/history', this.getRoomsHistory.bind(this));
+        this._router.get('/:roomId', this.getRoomDetail.bind(this));
     }
 
     getAvailableRooms(request, response) {
@@ -40,9 +39,9 @@ class RoomsController {
         const end = request.query.bookingEnd;
         const location = request.query.location;
         const visitors = Number(request.query.visitors);
-        const children = Number(request.query.children) || 0;
+        const children = Number(request.query.children);
 
-        if (!start || !end || !location || !visitors || !children) {
+        if (!start || !end || !location || isNaN(visitors) || isNaN(children)) {
             const time = moment().unix();
             logger.error(`${time} | Missing parameters to find available rooms (${start}, ${end}, ${location}, ${visitors}, ${children})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
@@ -70,18 +69,19 @@ class RoomsController {
         const hotelId = request.body.hotelId;
         const name = request.body.name;
         const description = request.body.description;
+        const cancellation = request.body.cancellation;
         const beds = request.body.beds;
         const bathrooms = request.body.bathrooms;
         const visitors = request.body.visitors;
         const price = request.body.price;
 
-        if (!hotelId || !name || !description || !beds || !bathrooms || !visitors || !price) {
+        if (!hotelId || !name || !description || !cancellation || isNaN(beds) || isNaN(bathrooms) || isNaN(visitors) || isNaN(price)) {
             const time = moment().unix();
-            logger.error(`${time} | Missing parameters to find available rooms (${hotelId}, ${name}, ${description}, ${beds}, ${bathrooms}, ${visitors}, ${price})`);
+            logger.error(`${time} | Missing parameters to find available rooms (${hotelId}, ${name}, ${description}, ${cancellation}, ${beds}, ${bathrooms}, ${visitors}, ${price})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug(`Creating a new room on hotel ${hotelId}`);
-            roomService.createRoom(hotelId, name, description, Number(beds), Number(bathrooms), Number(visitors), Number(price))
+            roomService.createRoom(hotelId, name, description, cancellation, Number(beds), Number(bathrooms), Number(visitors), Number(price))
                 .then((receipt) => {
                     if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
                         response.json({message: 'Room has been created successfully'});
@@ -121,20 +121,6 @@ class RoomsController {
                 });
         }
 
-    }
-
-    getRoomsHistory(request, response) {
-
-        logger.debug(`Finding rooms history`);
-        roomService.pastEvents()
-            .then((data) => {
-                response.json({ events: data });
-            })
-            .catch((error) => {
-                const time = moment().unix();
-                logger.error(`${time} | Error retrieving rooms history: ${error}`);
-                response.status(500).json({code: `${time}`, message: error.toString()});
-            });
     }
 
 }

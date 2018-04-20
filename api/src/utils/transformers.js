@@ -41,6 +41,8 @@ const parseHotel = (hotel) => {
         name: hotel['name'],
         description: hotel['description'],
         location: hotel['location'],
+        rating: Number(hotel['rating']),
+        reviews: Number(hotel['reviews']),
     };
 };
 
@@ -54,6 +56,7 @@ const parseRoom = (room) => {
     return {
         code: room['code'],
         description: room['description'],
+        cancellation: room['cancellation'],
         beds: Number(room['beds']),
         bathrooms: Number(room['bathrooms']),
         visitors: Number(room['visitors']),

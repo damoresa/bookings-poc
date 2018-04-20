@@ -43,15 +43,17 @@ class HotelsController {
         const name = request.body.name;
         const description = request.body.description;
         const location = request.body.location;
+        const rating = request.body.rating;
+        const reviews = request.body.reviews;
 
-        if (!name || !description || !location) {
+        if (!name || !description || !location || isNaN(rating) || isNaN(reviews)) {
             const time = moment().unix();
-            logger.error(`${time} | Missing parameters to create hotel (${name}, ${description}, ${location})`);
+            logger.error(`${time} | Missing parameters to create hotel (${name}, ${description}, ${location}, ${rating}, ${reviews})`);
             response.status(500).json({ code: time, message: 'Invalid call, missing parameters' });
         } else {
             logger.debug('Creating hotel');
             try {
-                const receipt = await hotelService.createHotel(name, description, location);
+                const receipt = await hotelService.createHotel(name, description, location, Number(rating), Number(reviews));
                 if (receipt.status === CONSTANTS.WEB3.TRANSACTION.OK) {
                     response.json({message: 'Hotel has been created successfully'});
                 } else {

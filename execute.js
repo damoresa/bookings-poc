@@ -27,9 +27,11 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8501'));
 // Bookings V13: 0xEEf2e0a43F2E587116ae7315AF8928382ECCD65C
 // Bookings V14: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
 // Bookings V15: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
+// Bookings V16: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
+// Bookings V17: 0xDC168403a67EE52f37A6D9c99913F189de874Ded
 
 const jsonInterface = JSON.parse(interface);
-const contract = new web3.eth.Contract(jsonInterface, '0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba');
+const contract = new web3.eth.Contract(jsonInterface, '0xDC168403a67EE52f37A6D9c99913F189de874Ded');
 const caller = '0x2a8d318530f3795db1de230098d654531b8a52e3';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
@@ -41,12 +43,23 @@ const hotels = [
     {
         name: 'First example hotel',
         description: 'A beautiful example hotel',
-        location: 'Sillicon Valley'
+        location: 'Madrid, Spain',
+        rating: 4,
+        reviews: 1104
     },
     {
         name: 'Second example hotel',
         description: 'Another beautiful example hotel',
-        location: 'Sillicon Valley'
+        location: 'Barcelona, Spain',
+        rating: 3,
+        reviews: 678
+    },
+    {
+        name: 'Second example hotel',
+        description: 'Another beautiful example hotel',
+        location: 'Madera, Portugal',
+        rating: 5,
+        reviews: 892
     }
 ];
 
@@ -54,6 +67,7 @@ const rooms = [
     {
         name: 'Small room',
         description: 'Small sized room',
+        cancellation: 'Free cancellation 3 days prior to arrival',
         beds: 2,
         bathrooms: 1,
         visitors: 2,
@@ -62,6 +76,7 @@ const rooms = [
     {
         name: 'Medium room',
         description: 'Medium sized room',
+        cancellation: 'Free cancellation anytime',
         beds: 4,
         bathrooms: 1,
         visitors: 4,
@@ -70,6 +85,7 @@ const rooms = [
     {
         name: 'Minor suite',
         description: 'Smallest suite',
+        cancellation: 'No cancellation',
         beds: 6,
         bathrooms: 2,
         visitors: 6,
@@ -78,6 +94,7 @@ const rooms = [
     {
         name: 'Major suite',
         description: 'Biggest suite',
+        cancellation: 'No cancellation',
         beds: 8,
         bathrooms: 3,
         visitors: 8,
@@ -102,31 +119,31 @@ const filters = [
     {
         start: '18/04/2018',
         end: '21/04/2018',
-        location: 'Sillicon Valley',
+        location: 'Madera, Portugal',
         visitors: 2,
     },
     {
         start: '21/04/2018',
         end: '26/04/2018',
-        location: 'Sillicon Valley',
+        location: 'Madrid, Spain',
         visitors: 2,
     },
     {
         start: '18/04/2018',
         end: '26/04/2018',
-        location: 'Sillicon Valley',
+        location: 'Madrid, Spain',
         visitors: 2,
     },
     {
         start: '17/04/2018',
         end: '19/04/2018',
-        location: 'Sillicon Valley',
+        location: 'Barcelona, Spain',
         visitors: 2,
     },
     {
         start: '01/05/2018',
         end: '10/05/2018',
-        location: 'Sillicon Valley',
+        location: 'Madera, Portugal',
         visitors: 2,
     }
 ];

@@ -10,9 +10,9 @@ class HotelsService {
         this._getHotelsDetails.bind(this);
     }
 
-    async createHotel(name, description, location) {
+    async createHotel(name, description, location, rating, reviews) {
         logger.debug('Creating hotel');
-        return await smartContract.contract.methods.createHotel(name, description, location).send({
+        return await smartContract.contract.methods.createHotel(name, description, location, rating, reviews).send({
             from: smartContract.caller,
             gas: smartContract.gasLimit
         }).on('receipt', (receipt) => { return receipt; });

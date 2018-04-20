@@ -12,9 +12,9 @@ class RoomsService {
         this._getRoomsDetails.bind(this);
     }
 
-    createRoom(hotelId, name, description, beds, bathrooms, visitors, price) {
+    createRoom(hotelId, name, description, cancellation, beds, bathrooms, visitors, price) {
         logger.debug(`Creating new room for hotel ${hotelId}`);
-        return smartContract.contract.methods.createRoom(hotelId, name, description, beds, bathrooms, visitors, price).send({
+        return smartContract.contract.methods.createRoom(hotelId, name, description, cancellation, beds, bathrooms, visitors, price).send({
             from: smartContract.caller,
             gas: smartContract.gasLimit
         }).on('receipt', (receipt) => { return receipt; });
