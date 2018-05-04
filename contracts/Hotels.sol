@@ -6,18 +6,14 @@ contract Hotels {
     // TODO: Split into smaller contracts as it's too big for the main network
     //       One possible way of doing this is to keep a master contract which invokes all of these.
 
-    uint internal BOOKING_ID = 0;
     struct Booking {
-        uint code;
         uint bookingDate;
         uint startDate;
         uint endDate;
         uint visitors;
     }
 
-    uint internal HOTEL_ID = 0;
     struct Hotel {
-        uint code;
         string name;
         string description;
         string location;
@@ -25,9 +21,7 @@ contract Hotels {
         uint reviews;
     }
 
-    uint internal ROOM_ID = 0;
     struct Room {
-        uint code;
         string name;
         string description;
         string cancellation;
@@ -45,27 +39,21 @@ contract Hotels {
     event RoomCreated(uint indexed code, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode);
 
     // Internal data stores
-    Booking[] internal bookings;
+    Booking[] public bookings;
     mapping(uint => uint) internal bookingToRoom;
     mapping(uint => uint) internal roomBookingsCount;
 
-    Hotel[] internal hotels;
+    Hotel[] public hotels;
     mapping(uint => uint) internal hotelRoomsCount;
 
-    Room[] internal rooms;
+    Room[] public rooms;
     mapping(uint => uint) internal roomToHotel;
-
-    function _generateRandomCode(string _str) private pure returns (uint) {
-        uint rand = uint(keccak256(_str));
-        return rand;
-    }
 
     function _countAvailableRooms(string location, uint startDate, uint endDate, uint visitors) private view returns (uint) {
         uint counter = 0;
         for (uint idx = 0; idx < rooms.length; idx++) {
-            Room memory room = rooms[idx];
-            Hotel memory hotel = _getHotel(roomToHotel[room.code]);
-            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(room.code, startDate, endDate, visitors)) {
+            Hotel memory hotel = hotels[roomToHotel[idx]];
+            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(idx, startDate, endDate, visitors)) {
                 counter++;
             }
         }
@@ -79,17 +67,7 @@ contract Hotels {
     }
 
     function _canRoomFitVisitors(uint roomId, uint visitors) private view returns (bool) {
-        bool found = false;
-        uint counter = 0;
-        Room memory room;
-        while(!found) {
-            room = rooms[counter];
-            if (room.code == roomId) {
-                found = true;
-            } else {
-                counter++;
-            }
-        }
+        Room memory room = rooms[roomId];
         return room.visitors >= visitors;
     }
 
@@ -106,7 +84,7 @@ contract Hotels {
                 Booking memory booking = bookings[idx];
 
                 // Booking belongs to the given room AND the range is invalid
-                if (bookingToRoom[booking.code] == roomId && _isInvalidRange(booking, startDate, endDate)) {
+                if (bookingToRoom[idx] == roomId && _isInvalidRange(booking, startDate, endDate)) {
                     available = false;
                 }
 
@@ -125,9 +103,9 @@ contract Hotels {
     }
 
     function createBooking(uint roomCode, uint startDate, uint endDate, uint visitors) external canBeBooked(roomCode, startDate, endDate, visitors) returns (uint) {
-        uint bookingCode = ++BOOKING_ID;
+        uint bookingCode = bookings.length;
         uint date = now;
-        Booking memory booking = Booking(bookingCode, date, startDate, endDate, visitors);
+        Booking memory booking = Booking(date, startDate, endDate, visitors);
         bookings.push(booking);
 
         bookingToRoom[bookingCode] = roomCode;
@@ -138,39 +116,13 @@ contract Hotels {
         return bookingCode;
     }
 
-    function bookingDetail(uint bookingId) external view returns (uint code, uint date, uint start, uint end, uint visitors, uint roomCode) {
-        uint pointer = 0;
-        bool found = false;
-        Booking memory booking;
-
-        while (!found) {
-            booking = bookings[pointer];
-            if (booking.code == bookingId) {
-                found = true;
-            } else {
-                pointer++;
-            }
-        }
-
-        return (booking.code, booking.bookingDate, booking.startDate, booking.endDate, booking.visitors, bookingToRoom[booking.code]);
-    }
-
-    function getBookings() external view returns (uint[]) {
-        uint[] memory result = new uint[](bookings.length);
-        for (uint idx = 0; idx < bookings.length; idx++) {
-            result[idx] = bookings[idx].code;
-        }
-        return result;
-    }
-
     function roomBookings(uint roomId) external view returns (uint[]) {
         uint[] memory result = new uint[](roomBookingsCount[roomId]);
         // Iterate the existing rooms and allocate those belonging to this hotel
         uint counter = 0;
         for (uint idx = 0; idx < bookings.length; idx++) {
-            Booking memory booking = bookings[idx];
-            if (bookingToRoom[booking.code] == roomId) {
-                result[counter] = booking.code;
+            if (bookingToRoom[idx] == roomId) {
+                result[counter] = idx;
                 counter++;
             }
         }
@@ -178,8 +130,8 @@ contract Hotels {
     }
 
     function createRoom(uint hotelCode, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price) external returns (uint) {
-        uint roomCode = ++ROOM_ID;
-        Room memory room = Room(roomCode, name, description, cancellation, beds, bathrooms, visitors, price);
+        uint roomCode = rooms.length;
+        Room memory room = Room(name, description, cancellation, beds, bathrooms, visitors, price);
         rooms.push(room);
 
         roomToHotel[roomCode] = hotelCode;
@@ -191,32 +143,14 @@ contract Hotels {
         return roomCode;
     }
 
-    function roomDetail(uint roomId) external view returns (uint code, string name, string description, string cancellation, uint beds, uint bathrooms, uint visitors, uint price, uint hotelCode) {
-        uint pointer = 0;
-        bool found = false;
-        Room memory room;
-
-        while (!found) {
-            room = rooms[pointer];
-            if (room.code == roomId) {
-                found = true;
-            } else {
-                pointer++;
-            }
-        }
-
-        return (room.code, room.name, room.description, room.cancellation, room.beds, room.bathrooms, room.visitors, room.price, roomToHotel[room.code]);
-    }
-
     function availableRooms(string location, uint startDate, uint endDate, uint visitors) external view returns (uint[]) {
         uint[] memory result = new uint[](_countAvailableRooms(location, startDate, endDate, visitors));
         uint counter = 0;
         for (uint idx = 0; idx < rooms.length; idx++) {
-            Room memory room = rooms[idx];
-            Hotel memory hotel = _getHotel(roomToHotel[room.code]);
+            Hotel memory hotel = hotels[roomToHotel[idx]];
             // Selected location and available date
-            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(room.code, startDate, endDate, visitors)) {
-                result[counter] = room.code;
+            if (keccak256(hotel.location) == keccak256(location) && _isRoomAvailable(idx, startDate, endDate, visitors)) {
+                result[counter] = idx;
                 counter++;
             }
         }
@@ -228,35 +162,17 @@ contract Hotels {
         // Iterate the existing rooms and allocate those belonging to this hotel
         uint counter = 0;
         for (uint idx = 0; idx < rooms.length; idx++) {
-            Room memory room = rooms[idx];
-            if (roomToHotel[room.code] == hotelId) {
-                result[counter] = room.code;
+            if (roomToHotel[idx] == hotelId) {
+                result[counter] = idx;
                 counter++;
             }
         }
         return result;
     }
 
-    function _getHotel(uint hotelId) private view returns (Hotel) {
-        uint pointer = 0;
-        bool found = false;
-        Hotel memory hotel;
-
-        while (!found) {
-            hotel = hotels[pointer];
-            if (hotel.code == hotelId) {
-                found = true;
-            } else {
-                pointer++;
-            }
-        }
-
-        return hotel;
-    }
-
     function createHotel(string name, string description, string location, uint rating, uint reviews) external returns (uint) {
-        uint hotelCode = ++HOTEL_ID;
-        Hotel memory hotel = Hotel(hotelCode, name, description, location, rating, reviews);
+        uint hotelCode = hotels.length;
+        Hotel memory hotel = Hotel(name, description, location, rating, reviews);
         hotels.push(hotel);
 
         hotelRoomsCount[hotelCode] = 0;
@@ -264,30 +180,5 @@ contract Hotels {
         emit HotelCreated(hotelCode, name, description, location, rating, reviews);
 
         return hotelCode;
-    }
-
-    function hotelDetail(uint hotelId) external view returns (uint code, string name, string description, string location, uint rating, uint reviews) {
-        uint pointer = 0;
-        bool found = false;
-        Hotel memory hotel;
-
-        while (!found) {
-            hotel = hotels[pointer];
-            if (hotel.code == hotelId) {
-                found = true;
-            } else {
-                pointer++;
-            }
-        }
-
-        return (hotel.code, hotel.name, hotel.description, hotel.location, hotel.rating, hotel.reviews);
-    }
-
-    function allHotels() external view returns (uint[]) {
-        uint[] memory result = new uint[](hotels.length);
-        for (uint index = 0; index < hotels.length; index++) {
-            result[index] = hotels[index].code;
-        }
-        return result;
     }
 }
