@@ -29,9 +29,10 @@ web3.setProvider(new web3.providers.HttpProvider('http://localhost:8501'));
 // Bookings V15: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
 // Bookings V16: 0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba
 // Bookings V17: 0xDC168403a67EE52f37A6D9c99913F189de874Ded
+// Bookings V17(1): 0xDC168403a67EE52f37A6D9c99913F189de874Ded
 
 const jsonInterface = JSON.parse(interface);
-const contract = new web3.eth.Contract(jsonInterface, '0xDC168403a67EE52f37A6D9c99913F189de874Ded');
+const contract = new web3.eth.Contract(jsonInterface, '0x420E55ffD79230b1F3b8112f7DB5aD570BAc23Ba');
 const caller = '0x2a8d318530f3795db1de230098d654531b8a52e3';
 
 const DATE_FORMAT = 'DD/MM/YYYY';
